@@ -1,13 +1,22 @@
-<h1>
-	Créqtion d'un article !
-</h1>
-{{ form_start(formArticle) }}
+{% extends "base.html.twig" %}
+{% block body %}
+	<h1>
+		Créqtion d'un article !
+	</h1>
+	{{ form_start(formArticle) }}
 
-{{ form_row(formArticle.title) }}
-{{ form_row(formArticle.content) }}
-{{ form_row(formArticle.image) }}
+	{{ form_row(formArticle.title) }}
+	{{ form_row(formArticle.content) }}
+	{{ form_row(formArticle.image) }}
 
-<button type="submit" class="btn btn-success">
-	Ajouter l'article
-</button>
-{{ form_end(formArticle )}}
+	<button type="submit" class="btn btn-success">
+		{% if editmode == true   %}
+			Ajouter l'article
+		{% else %}
+
+			modifier l'article
+		{% endif %}
+
+	</button>
+	{{ form_end(formArticle )}}
+{% endblock %}

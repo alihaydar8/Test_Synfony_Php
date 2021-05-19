@@ -2,17 +2,16 @@
 
 namespace App\Controller;
 
-use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\Request;
 
-use App\Entity\Task;
-use App\Form\Type\TaskType;
+use Symfony\Component\HttpFoundation\Request;
 
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
 
 class BlogController extends AbstractController
 {
@@ -38,18 +37,35 @@ class BlogController extends AbstractController
 
     /**
      * @Route("/create", name="blog_create")
+     * @Route("/{id}/edit", name="blog_edit")
      */
-    public function create(Request $request, ObjectManager $manager)
+    public function create(Article $article = null, Request $request, EntityManagerInterface $entityManager)
 
     {
-        // $article = new Article();
-        // $from = $this->createFromBuilder($article)
-        //     ->add('title')
-        //     ->add('content')
-        //     ->add('image')
-        //     ->getFrom();
+        $editmode = true;
+        if (!$article) {
+            $article = new Article();
+        }
 
-        // return $this->render('blog/create.html.twig', ['fromArticle' => $from->createView()]);
+        $form = $this->createFormBuilder($article)
+            ->add('title')
+            ->add('content')
+            ->add('image')
+            ->getForm();
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (!$article->getId()) {
+                $editmode = false;
+                $article->setCreatedAt(new \DateTime());
+            }
+
+            $entityManager->persist($article);
+            $entityManager->flush();
+            return $this->redirectToRoute('blog_show', ['id' => $article->getId()]);
+        }
+
+
+        return $this->render('blog/create.html.twig', ['formArticle' => $form->createView(), 'editmode' => $editmode]);
     }
 
     /**
@@ -60,5 +76,15 @@ class BlogController extends AbstractController
         //   $repo = $this->getDoctrine()->getRepository(Article::class);
         //  $article = $repo->find($id);
         return $this->render('blog/show.html.twig', ['article' => $article]);
+    }
+    /**
+     * @Route("/modal", name="modal")
+     */
+
+    public function modal()
+
+    {
+
+        return $this->render('blog/modal.html.twig');
     }
 }
